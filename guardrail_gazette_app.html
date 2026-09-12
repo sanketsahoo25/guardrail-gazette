@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guardrail Gazette — 20-Day Companion</title>
+<style>
+  :root{
+    --paper:#eae4d6;
+    --paper-raised:#f2ede1;
+    --ink:#211d17;
+    --ink-soft:#5a5347;
+    --rule:#c9bfa8;
+    --crimson:#8c2f2f;
+    --crimson-dim:#c9a3a3;
+    --gold:#a9834b;
+    --gold-dim:#d9c69f;
+    --serif:'Georgia','Iowan Old Style','Times New Roman',serif;
+    --mono:'SF Mono','Consolas','Liberation Mono',monospace;
+    --sans:-apple-system,'Segoe UI','Helvetica Neue',Arial,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{background:var(--paper); color:var(--ink); font-family:var(--sans); line-height:1.5;}
+
+  .masthead{
+    text-align:center;
+    padding:30px 20px 20px;
+    border-bottom:3px double var(--ink);
+  }
+  .masthead .issue-line{
+    display:flex; justify-content:space-between; max-width:720px; margin:0 auto 6px;
+    font-family:var(--mono); font-size:11px; color:var(--ink-soft); letter-spacing:.03em;
+  }
+  .masthead h1{
+    font-family:var(--serif); font-size:44px; margin:6px 0 4px; letter-spacing:.01em; font-weight:700;
+  }
+  .masthead .tagline{font-family:var(--serif); font-style:italic; font-size:14px; color:var(--ink-soft);}
+  .rule-thin{border-top:1px solid var(--rule); max-width:720px; margin:10px auto 0;}
+
+  main{max-width:820px; margin:0 auto; padding:32px 24px 80px;}
+
+  .progress-bar-row{display:flex; align-items:center; gap:14px; margin-bottom:30px;}
+  .progress-track{flex:1; height:6px; background:var(--rule); border-radius:3px; overflow:hidden;}
+  .progress-fill{height:100%; background:var(--crimson); width:0%; transition:width .3s;}
+  .progress-label{font-family:var(--mono); font-size:12px; color:var(--ink-soft); white-space:nowrap;}
+
+  .week-block{margin-bottom:34px;}
+  .week-title{
+    font-family:var(--serif); font-size:19px; font-weight:700; margin:0 0 4px 0;
+  }
+  .week-sub{font-size:13px; color:var(--ink-soft); margin:0 0 14px 0;}
+
+  .day-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(220px,1fr)); gap:12px;}
+  .day-card{
+    background:var(--paper-raised);
+    border:1px solid var(--rule);
+    padding:14px 16px;
+    cursor:pointer;
+    position:relative;
+  }
+  .day-card:hover{border-color:var(--crimson);}
+  .day-card.done{border-left:4px solid var(--crimson);}
+  .day-card .num{font-family:var(--mono); font-size:11px; color:var(--ink-soft);}
+  .day-card h4{font-family:var(--serif); font-size:15.5px; margin:4px 0 6px 0;}
+  .day-card .tag{font-size:11px; color:var(--gold); font-family:var(--mono);}
+  .day-card .badge-check{position:absolute; top:12px; right:12px; font-size:14px; color:var(--crimson); display:none;}
+  .day-card.done .badge-check{display:block;}
+
+  /* ---- Day view ---- */
+  .back-link{font-family:var(--mono); font-size:12px; color:var(--ink-soft); text-decoration:underline; cursor:pointer; background:none; border:none; padding:0; margin-bottom:18px; display:inline-block;}
+  .day-header{margin-bottom:20px;}
+  .day-header .num{font-family:var(--mono); font-size:12px; color:var(--crimson);}
+  .day-header h2{font-family:var(--serif); font-size:28px; margin:6px 0 6px 0;}
+  .day-header .tag{font-family:var(--mono); font-size:12px; color:var(--gold); border:1px solid var(--gold-dim); padding:3px 10px; border-radius:12px; display:inline-block;}
+
+  .bullets{list-style:none; margin:0 0 26px 0; padding:0;}
+  .bullets li{
+    padding:12px 0 12px 22px; border-bottom:1px solid var(--rule);
+    position:relative; font-size:15px;
+  }
+  .bullets li::before{content:"§"; position:absolute; left:0; color:var(--crimson); font-family:var(--serif);}
+
+  .quiz-block{background:var(--paper-raised); border:1px solid var(--rule); padding:20px; margin-bottom:16px;}
+  .quiz-block .q{font-family:var(--serif); font-size:16px; font-weight:700; margin:0 0 14px 0;}
+  .qopt{
+    display:block; width:100%; text-align:left; background:var(--paper); border:1px solid var(--rule);
+    color:var(--ink); padding:10px 14px; margin-bottom:8px; cursor:pointer; font-family:var(--sans); font-size:14px;
+  }
+  .qopt:hover{border-color:var(--gold);}
+  .qopt.correct{border-color:var(--crimson); background:#f3e6e6;}
+  .qopt.wrong{border-color:var(--ink-soft); background:#ece5d5; text-decoration:line-through; color:var(--ink-soft);}
+  .qexplain{font-size:13.5px; color:var(--ink-soft); margin-top:10px; padding-top:10px; border-top:1px dashed var(--rule); display:none;}
+
+  .claim-row{text-align:center; margin-top:28px;}
+  .claim-btn{
+    font-family:var(--serif); font-size:16px; font-weight:700; background:var(--crimson); color:var(--paper);
+    border:none; padding:14px 32px; cursor:pointer;
+  }
+  .claim-btn:disabled{background:var(--rule); cursor:not-allowed; color:var(--ink-soft);}
+  .claim-hint{font-size:12.5px; color:var(--ink-soft); margin-top:8px;}
+
+  /* ---- Badge view ---- */
+  .badge-screen{text-align:center;}
+  .badge-screen h3{font-family:var(--serif); font-size:22px; margin-bottom:18px;}
+  #badgeSvgHolder{display:inline-block; margin-bottom:20px;}
+  .name-input-row{margin:0 auto 20px; max-width:320px;}
+  .name-input-row input{
+    width:100%; padding:10px 12px; font-family:var(--sans); font-size:14px; border:1px solid var(--rule); background:var(--paper-raised);
+  }
+  .download-btn{
+    font-family:var(--sans); font-weight:600; font-size:14px; background:var(--ink); color:var(--paper);
+    border:none; padding:12px 24px; cursor:pointer; margin-right:10px;
+  }
+  .continue-btn{
+    font-family:var(--sans); font-size:14px; background:none; color:var(--ink-soft); border:1px solid var(--rule);
+    padding:12px 24px; cursor:pointer;
+  }
+</style>
+</head>
+<body>
+
+<div class="masthead">
+  <div class="issue-line">
+    <span>EST. 2026</span>
+    <span>5 MINUTES A DAY</span>
+  </div>
+  <h1>Guardrail Gazette</h1>
+  <p class="tagline">AI Risk & Compliance, One Daily Dispatch at a Time</p>
+</div>
+<div class="rule-thin"></div>
+
+<main id="main"></main>
+
+<script>
+const DAYS = [
+  // WEEK 1
+  {day:1, week:1, title:"What Is \u201cAI Compliant,\u201d Actually?", tag:"Compliance Foundations",
+   bullets:[
+     "There's no single global AI law — the landscape has three layers: binding law, voluntary standards, and a jurisdiction patchwork.",
+     "Layer 1: the EU AI Act is currently the only broad, binding, cross-industry AI law with real enforcement.",
+     "Layer 2: NIST AI RMF and ISO/IEC 42001 are voluntary — but demanded by customers and insurers anyway.",
+     "Layer 3: individual countries/states add their own narrower, enforceable rules on top."
+   ],
+   quiz:[
+     {q:"Which is currently the only binding, enforceable cross-industry AI law?", options:["NIST AI RMF","The EU AI Act","ISO/IEC 42001"], answer:1, explain:"NIST AI RMF and ISO 42001 are both voluntary standards, not law."},
+     {q:"Is ISO/IEC 42001 certification legally required to sell AI products in the EU?", options:["Yes, always","No — voluntary, but often demanded by customers"], answer:1, explain:"It's a voluntary, certifiable standard — not a legal requirement, though procurement teams increasingly expect it."}
+   ]},
+  {day:2, week:1, title:"The EU AI Act: the Global Baseline", tag:"EU AI Act",
+   bullets:[
+     "Risk-tiered system: unacceptable (banned), high-risk (heavy obligations), limited-risk (transparency), minimal (no restrictions).",
+     "GPAI obligations live since Aug 2025; EU Commission enforcement began Aug 2026.",
+     "High-risk system deadline pushed to Dec 2027 (was Aug 2026).",
+     "Penalties: up to €35M/7% turnover for banned practices; up to €15M/3% for high-risk breaches."
+   ],
+   quiz:[
+     {q:"What's the current deadline for high-risk AI system compliance?", options:["August 2026","December 2027","There is no deadline"], answer:1, explain:"Extended from the original August 2026 date."},
+     {q:"Which triggers the higher €35M/7% penalty tier?", options:["Missing some technical documentation","Practices banned as \u2018unacceptable risk\u2019","Being a small business"], answer:1, explain:"High-risk paperwork gaps sit at the lower €15M/3% tier."}
+   ]},
+  {day:3, week:1, title:"NIST AI RMF: Govern, Map, Measure, Manage", tag:"NIST AI RMF",
+   bullets:[
+     "Voluntary US framework — not law — but the de facto standard for American risk programs.",
+     "Four continuous functions: Govern, Map, Measure, Manage.",
+     "Generative AI Profile added July 2024, extending it to GenAI-specific risks.",
+     "It's the methodology (how to think about risk) — not a certification or checklist."
+   ],
+   quiz:[
+     {q:"What are NIST AI RMF's four core functions, in order?", options:["Plan, Build, Test, Deploy","Govern, Map, Measure, Manage","Identify, Protect, Detect, Respond"], answer:1, explain:"Govern/Map/Measure/Manage — meant to run continuously, not once."},
+     {q:"Is NIST AI RMF legally binding on private US companies?", options:["Yes, nationally","No — voluntary, though widely expected"], answer:1, explain:"Federal agencies have separate directives; private companies adopt it voluntarily."}
+   ]},
+  {day:4, week:1, title:"ISO/IEC 42001: the Certifiable Standard", tag:"ISO 42001",
+   bullets:[
+     "Published Dec 2023 — the first international standard for an AI Management System (AIMS).",
+     "Key difference from NIST AI RMF: 42001 is certifiable by a third-party auditor.",
+     "Acts as a \u201ccompliance passport\u201d for multinational companies across jurisdictions.",
+     "None of the big three frameworks replace each other — mature programs run all three together."
+   ],
+   quiz:[
+     {q:"What's the key practical difference between NIST AI RMF and ISO 42001?", options:["They are identical","ISO 42001 is third-party certifiable; NIST AI RMF is not","NIST AI RMF is a binding law"], answer:1, explain:"NIST AI RMF is self-applied guidance; ISO 42001 can be formally audited and certified."},
+     {q:"When was ISO/IEC 42001 published?", options:["December 2023","January 2023","2020"], answer:0, explain:"December 2023 — a few months after NIST AI RMF's January 2023 release."}
+   ]},
+  {day:5, week:1, title:"The Patchwork Below", tag:"Global Landscape",
+   bullets:[
+     "US: no federal AI law — a fast-moving state patchwork (CA SB 53, TX TRAIGA, CO SB 26-189, NYC LL144, IL BIPA).",
+     "China: algorithmic filing, content compliance review, security assessments, PIPL data localization.",
+     "UK: no single AI law — existing regulators (FCA, ICO) extend authority case-by-case.",
+     "Singapore: Model AI Governance Framework, using a graduated-autonomy approach for agentic AI."
+   ],
+   quiz:[
+     {q:"Which US state law targets frontier-model transparency, live since Jan 2026?", options:["Texas TRAIGA","California SB 53","Illinois BIPA"], answer:1, explain:"California SB 53 specifically addresses frontier-model transparency."},
+     {q:"Does the UK have one comprehensive AI law like the EU AI Act?", options:["Yes","No — regulator-led, sector by sector"], answer:1, explain:"The FCA, ICO, and other regulators extend existing authority instead."}
+   ]},
+
+  // WEEK 2
+  {day:6, week:2, title:"LLM01: Prompt Injection", tag:"OWASP LLM01:2025",
+   bullets:[
+     "An attacker crafts input the model treats as a new instruction, not data to process.",
+     "Direct injection: typed straight into the chat. Indirect injection: hidden inside content the model was only supposed to read.",
+     "Indirect injection is more dangerous — the attacker never touches your application directly.",
+     "Same root cause as SQL/command injection: untrusted input treated as executable instruction."
+   ],
+   quiz:[
+     {q:"A bot reads a PDF secretly containing \u201cgrant admin access\u201d and follows it. What is this?", options:["Sensitive Info Disclosure","Indirect Prompt Injection","Unbounded Consumption"], answer:1, explain:"The instruction arrived via content the bot was meant to just read."},
+     {q:"Why is indirect injection more dangerous in production?", options:["It's always automated","The attacker never needs to interact with the app directly","It only affects chatbots"], answer:1, explain:"The payload just needs to end up in content the AI might ingest later."}
+   ]},
+  {day:7, week:2, title:"LLM02: Sensitive Information Disclosure", tag:"OWASP LLM02:2025",
+   bullets:[
+     "The model exposes secrets, PII, or confidential data via memorization or unrestricted runtime access.",
+     "Safest assumption: anything the model can access, it can eventually output.",
+     "Access control must happen before data reaches the model, not just as an output filter.",
+     "Apply the same least-privilege thinking you'd use for a new employee's system access."
+   ],
+   quiz:[
+     {q:"What's the safest design assumption for AI with access to sensitive data?", options:["The model will keep secrets if asked nicely","Anything it can access, it can eventually output","Disclosure requires malicious intent"], answer:1, explain:"Access control has to happen before the data reaches the model."},
+     {q:"Where should access control be enforced?", options:["Before the model sees the data","After, as an output filter only"], answer:0, explain:"Output filtering is a useful backup, not the primary control."}
+   ]},
+  {day:8, week:2, title:"LLM03: Supply Chain", tag:"OWASP LLM03:2025",
+   bullets:[
+     "Risk from components you didn't build: pretrained models, datasets, plugins, hosting infrastructure.",
+     "Same discipline as vendor risk management, applied to models and datasets.",
+     "Maintain a bill of materials for every model/dataset/plugin your system depends on.",
+     "Don't silently auto-update foundation models in production without testing."
+   ],
+   quiz:[
+     {q:"Which existing skill transfers most directly to LLM03?", options:["Vendor/third-party risk assessment","Password policy design","Firewall tuning"], answer:0, explain:"Supply chain risk in AI is vendor risk management, applied to models and datasets."},
+     {q:"What's a practical first step?", options:["Ignore open-source datasets","Maintain a bill of materials for dependencies","Ban all third-party models"], answer:1, explain:"You can't manage risk in components you haven't inventoried."}
+   ]},
+  {day:9, week:2, title:"LLM04: Data and Model Poisoning", tag:"OWASP LLM04:2025",
+   bullets:[
+     "An attacker manipulates training/fine-tuning/retrieval data so the model learns the wrong thing.",
+     "Distinct from prompt injection: poisoning happens pre-deployment; injection is a live, runtime attack.",
+     "Provenance-check data sources; monitor for behavior shifts after any data refresh.",
+     "Treat a data update like a code change — test before promoting to production."
+   ],
+   quiz:[
+     {q:"What distinguishes LLM04 from LLM01?", options:["They're identical","Poisoning is pre-deployment; injection is runtime","Poisoning only affects images"], answer:1, explain:"Poisoning corrupts training/retrieval data before deployment; injection manipulates a live request."},
+     {q:"How would you catch this early?", options:["Ignore data refreshes","Monitor for unusual behavior shifts after data updates","Only poisoning attacks images, not text"], answer:1, explain:"Test data updates the way you'd test a code change."}
+   ]},
+  {day:10, week:2, title:"LLM05: Improper Output Handling", tag:"OWASP LLM05:2025",
+   bullets:[
+     "An app trusts AI output and passes it downstream (browser, database, shell) without validating it.",
+     "Same root cause as XSS/SQL injection — the untrusted input source is just new.",
+     "If you've done output encoding for web forms, you already have the instinct this needs.",
+     "Never treat model output as trusted code, markup, or query syntax."
+   ],
+   quiz:[
+     {q:"Why is LLM05 called \u201ca vulnerability class you already know\u201d?", options:["It's identical to prompt injection","Unsanitized output causing harm mirrors XSS/SQLi","It only affects legacy apps"], answer:1, explain:"Same structural problem, new input source: the model."},
+     {q:"What's the core mitigation?", options:["Trust fluent-sounding output","Validate/encode model output like any external input","Disable all downstream actions"], answer:1, explain:"Encode or validate it exactly as you would any other untrusted input."}
+   ]},
+
+  // WEEK 3
+  {day:11, week:3, title:"LLM06: Excessive Agency", tag:"OWASP LLM06:2025",
+   bullets:[
+     "An agent gets more functionality, permissions, or autonomy than its task requires.",
+     "Three root causes: excessive functionality, excessive permissions, excessive autonomy.",
+     "A least-privilege problem — same instinct as tightening an over-permissioned service account.",
+     "Require human approval for any high-impact, hard-to-reverse action."
+   ],
+   quiz:[
+     {q:"An agent with read+delete access for a read-only task illustrates:", options:["Excessive Agency (LLM06)","Sensitive Info Disclosure (LLM02)","Supply Chain (LLM03)"], answer:0, explain:"Textbook least-privilege violation."},
+     {q:"Standard mitigation for excessive autonomy specifically?", options:["More automation","Human-in-the-loop approval for high-impact actions","Bigger context windows"], answer:1, explain:"Human review before irreversible actions is the core control."}
+   ]},
+  {day:12, week:3, title:"LLM07: System Prompt Leakage", tag:"OWASP LLM07:2025",
+   bullets:[
+     "Hidden system instructions get exposed to end users, sometimes revealing internal logic or secrets.",
+     "Classic principle: never rely on security through obscurity.",
+     "Design as if the system prompt will eventually leak — because across enough attempts, it usually does.",
+     "Never put real secrets (API keys, credentials) inside a system prompt."
+   ],
+   quiz:[
+     {q:"What's the core design principle here?", options:["System prompts are secure storage","Never rely on a prompt staying secret","Only chatbots are affected"], answer:1, explain:"Design as if it will be read — the classic anti-obscurity principle."},
+     {q:"Where should real secrets live?", options:["Inside the system prompt","In backend code / secret management","In the user's browser"], answer:1, explain:"Never inside prompt text, which should be treated as readable."}
+   ]},
+  {day:13, week:3, title:"LLM08: Vector and Embedding Weaknesses", tag:"OWASP LLM08:2025",
+   bullets:[
+     "RAG-specific risk: vector store poisoning, or retrieval crossing access boundaries it shouldn't.",
+     "Ask: does the vector store mirror the source systems' permissions, or quietly bypass them?",
+     "Very often, nobody built that enforcement in — it wasn't obviously \u201csecurity work\u201d at the time.",
+     "Fix: enforce the same boundaries in the vector store; segment by sensitivity level."
+   ],
+   quiz:[
+     {q:"A RAG bot retrieves a document a user shouldn't see. Likely cause?", options:["Prompt injection","Missing access control at the retrieval layer","Unbounded consumption"], answer:1, explain:"The vector store didn't mirror the source system's permissions."},
+     {q:"What's the fix?", options:["Delete the vector store","Enforce matching access boundaries + segment by sensitivity","Ignore it, it's rare"], answer:1, explain:"Same boundaries as source systems, segmented indexes."}
+   ]},
+  {day:14, week:3, title:"LLM09: Misinformation", tag:"OWASP LLM09:2025",
+   bullets:[
+     "The model generates confident, plausible, but factually wrong output (hallucination).",
+     "Different from most categories — closer to a data-integrity/QA problem than a classic vulnerability.",
+     "Fluent delivery makes wrong and right answers indistinguishable in tone.",
+     "Ground high-stakes outputs in verified sources with visible citations; require human verification."
+   ],
+   quiz:[
+     {q:"Why is misinformation especially dangerous?", options:["It's always intentional","It's delivered with the same confidence as correct answers","It only occurs in creative writing"], answer:1, explain:"Wrong and right output are indistinguishable in tone and delivery."},
+     {q:"Core mitigation for high-stakes use cases?", options:["Trust confident-sounding answers","Ground outputs in verified sources + human verification","Ban AI from legal/medical use entirely"], answer:1, explain:"Citations plus mandatory human review before acting."}
+   ]},
+  {day:15, week:3, title:"LLM10: Unbounded Consumption", tag:"OWASP LLM10:2025",
+   bullets:[
+     "Uncontrolled token/compute/API usage — a single request, a loop, or viral traffic.",
+     "Informally called \u201cdenial of wallet.\u201d",
+     "Same discipline as rate-limiting any public API — the expensive resource is now a model call.",
+     "Hard limits per user/session + real-time spend monitoring + automatic circuit-breaking."
+   ],
+   quiz:[
+     {q:"What's the informal name for this kind of attack?", options:["Denial of service only","Denial of wallet","Token starvation"], answer:1, explain:"A cost-exhaustion attack — hence \u201cdenial of wallet.\u201d"},
+     {q:"Core mitigation?", options:["Unlimited tokens for trusted users","Hard limits + spend monitoring + circuit-breaking","Ignore small requests"], answer:1, explain:"Cap usage per session and auto-break looping behavior."}
+   ]},
+
+  // WEEK 4
+  {day:16, week:4, title:"Bonus: OWASP Agentic Top 10 (ASI01\u201310)", tag:"OWASP ASI:2026",
+   bullets:[
+     "Published Dec 2025 — covers risk from agents that plan, use tools, hold memory, and coordinate.",
+     "Uses the ASI01\u201310 prefix, distinct from the LLM0X prefix.",
+     "Categories: Goal Hijack, Tool Misuse, Identity/Privilege Abuse, Supply Chain, Code Execution, Memory Poisoning, Insecure Inter-Agent Comms, Cascading Failures, Human-Agent Trust Exploitation, Rogue Agents.",
+     "Extends the LLM Top 10 — doesn't replace it. Chatbots: LLM Top 10 is enough. Agents that act: both apply."
+   ],
+   quiz:[
+     {q:"What prefix do Agentic Top 10 categories use?", options:["LLM","ASI","CVE"], answer:1, explain:"ASI01 through ASI10."},
+     {q:"Which is an agentic-specific risk, not on the LLM Top 10?", options:["Agent Goal Hijack","Prompt Injection","Sensitive Info Disclosure"], answer:0, explain:"The other two are LLM Top 10 categories."}
+   ]},
+  {day:17, week:4, title:"Bonus: MITRE ATLAS", tag:"MITRE ATLAS",
+   bullets:[
+     "Catalogs how attackers actually exploit AI systems — modeled on MITRE ATT&CK.",
+     "~15 tactics, ~66 techniques (as of Oct 2025), drawn from real documented incidents.",
+     "OWASP = the risk category. ATLAS = the attacker's actual playbook for exploiting it.",
+     "Red teams use ATLAS to simulate realistic attacks, the way ATT&CK is used for traditional systems."
+   ],
+   quiz:[
+     {q:"What is MITRE ATLAS modeled after?", options:["OWASP Top 10","MITRE ATT&CK","NIST AI RMF"], answer:1, explain:"ATT&CK's structure, adapted specifically for AI/ML systems."},
+     {q:"Roughly how many techniques does ATLAS document?", options:["~66","~10","~500"], answer:0, explain:"About 66 techniques across roughly 15 tactics, as of its Oct 2025 snapshot."}
+   ]},
+  {day:18, week:4, title:"One Risk, Three Frameworks", tag:"Synthesis",
+   bullets:[
+     "The same technical evidence can satisfy multiple frameworks at once — build once, cite three ways.",
+     "Example (data poisoning): EU AI Act Art.15/9, NIST RMF Measure function, ISO 42001 Annex A data-quality control.",
+     "One monitoring log, one integrity-check process — three compliance citations, no duplicated work.",
+     "This is what mature governance programs do instead of three disconnected compliance projects."
+   ],
+   quiz:[
+     {q:"What does \u201cbuild once, cite three ways\u201d mean?", options:["Write 3 separate reports","One piece of evidence satisfying multiple frameworks at once","Skip frameworks that don't apply"], answer:1, explain:"Real technical evidence, reused across framework citations."},
+     {q:"Does ISO 42001 certification guarantee EU AI Act legal compliance?", options:["Yes, automatically","No — it's evidence of maturity, not a legal substitute"], answer:1, explain:"It helps, but doesn't replace the Act's own conformity assessment."}
+   ]},
+  {day:19, week:4, title:"Building Your First AI Risk Register", tag:"Practical Capstone Prep",
+   bullets:[
+     "Fields needed: system name, risk description (tied to an LLM0X/ASI0X code), likelihood/impact, owner, status.",
+     "The framework-mapping field is what makes it genuinely auditable, not just a to-do list.",
+     "Ties each risk to a specific EU Article, NIST function, and/or ISO control.",
+     "It's a living document — continuously updated, mirroring NIST's ongoing Measure/Manage functions."
+   ],
+   quiz:[
+     {q:"Which field makes a register entry genuinely auditable?", options:["Owner's name","Framework mapping field","Ticket color"], answer:1, explain:"Tying the risk to a specific Article/function/control is what makes it evidence."},
+     {q:"How often should a risk register be updated?", options:["Once, at launch","Continuously, as a living document"], answer:1, explain:"Mirrors NIST AI RMF's ongoing Measure and Manage functions."}
+   ]},
+  {day:20, week:4, title:"Capstone: Put It All Together", tag:"Certification", capstone:true,
+   bullets:[
+     "Scenario: an internal agent reading tickets gets manipulated into emailing confidential data externally.",
+     "Step 1 \u2014 initial compromise: LLM01, Prompt Injection (indirect, via ticket content).",
+     "Step 2 \u2014 the agent's action once compromised: ASI01 (Agent Goal Hijack) / ASI02 (Tool Misuse).",
+     "Step 3 \u2014 what should've caught it: NIST's Map (assess the risk pre-deployment) and Manage (have a real mitigation in place)."
+   ],
+   quiz:[
+     {q:"Which OWASP LLM category caused the initial compromise in the scenario?", options:["LLM01 Prompt Injection","LLM09 Misinformation","LLM03 Supply Chain"], answer:0, explain:"Indirect injection via the support ticket's content."},
+     {q:"Which NIST function should have caught this before production?", options:["Govern only","Map and Manage","Measure only"], answer:1, explain:"Map (assessing the risk of the capability pre-deployment) and Manage (having a real mitigation in place)."}
+   ]}
+];
+
+let solved = JSON.parse("{}");
+let currentDay = null;
+let quizState = {}; // per day: {answered:[bool,bool], correct:[bool,bool]}
+
+function totalDone(){ return Object.keys(solved).length; }
+
+function renderBoard(){
+  currentDay = null;
+  const main = document.getElementById('main');
+  const weeks = [
+    {n:1, title:"Week 1 \u2014 Global Compliance Foundations", sub:"EU AI Act \u00b7 NIST AI RMF \u00b7 ISO 42001 \u00b7 the jurisdiction patchwork"},
+    {n:2, title:"Week 2 \u2014 OWASP LLM Top 10, Part 1", sub:"LLM01 through LLM05"},
+    {n:3, title:"Week 3 \u2014 OWASP LLM Top 10, Part 2", sub:"LLM06 through LLM10"},
+    {n:4, title:"Week 4 \u2014 Frontier, Synthesis, Capstone", sub:"Agentic Top 10 \u00b7 MITRE ATLAS \u00b7 synthesis \u00b7 final certification"}
+  ];
+
+  let html = `
+    <div class="progress-bar-row">
+      <div class="progress-track"><div class="progress-fill" style="width:${(totalDone()/DAYS.length*100)}%"></div></div>
+      <div class="progress-label">${totalDone()} / ${DAYS.length} DISPATCHES CLAIMED</div>
+    </div>
+  `;
+
+  weeks.forEach(w => {
+    const days = DAYS.filter(d => d.week === w.n);
+    html += `
+      <div class="week-block">
+        <h3 class="week-title">${w.title}</h3>
+        <p class="week-sub">${w.sub}</p>
+        <div class="day-grid">
+          ${days.map(d => `
+            <div class="day-card ${solved[d.day] ? 'done' : ''}" onclick="openDay(${d.day})">
+              <span class="badge-check">\u2713</span>
+              <div class="num">DAY ${String(d.day).padStart(2,'0')}</div>
+              <h4>${d.title}</h4>
+              <div class="tag">${d.tag}</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  });
+
+  main.innerHTML = html;
+}
+
+function openDay(day){
+  currentDay = day;
+  if (!quizState[day]) quizState[day] = {answered:[false,false], correct:[false,false]};
+  renderDay();
+}
+
+function renderDay(){
+  const d = DAYS.find(x => x.day === currentDay);
+  const qs = quizState[d.day];
+  const main = document.getElementById('main');
+
+  main.innerHTML = `
+    <button class="back-link" onclick="renderBoard()">\u2190 Back to the board</button>
+    <div class="day-header">
+      <div class="num">DISPATCH NO. ${String(d.day).padStart(2,'0')}</div>
+      <h2>${d.title}</h2>
+      <span class="tag">${d.tag}</span>
+    </div>
+    <ul class="bullets">
+      ${d.bullets.map(b => `<li>${b}</li>`).join('')}
+    </ul>
+    ${d.quiz.map((q, qi) => `
+      <div class="quiz-block">
+        <p class="q">Check ${qi+1}. ${q.q}</p>
+        ${q.options.map((opt, oi) => `<button class="qopt" data-day="${d.day}" data-qi="${qi}" data-oi="${oi}" onclick="answer(${d.day},${qi},${oi})">${opt}</button>`).join('')}
+        <div class="qexplain" id="explain-${qi}">${q.explain}</div>
+      </div>
+    `).join('')}
+    <div class="claim-row">
+      <button class="claim-btn" id="claimBtn" onclick="claimBadge(${d.day})" ${allCorrect(d.day) ? '' : 'disabled'}>
+        ${solved[d.day] ? 'View Your Badge Again' : 'Claim Today\u2019s Badge'}
+      </button>
+      <p class="claim-hint">${allCorrect(d.day) ? '' : 'Answer both checks correctly to unlock today\u2019s badge.'}</p>
+    </div>
+  `;
+
+  // repaint any already-answered state
+  qs.answered.forEach((ans, qi) => {
+    if (ans) paintAnswered(d.day, qi);
+  });
+}
+
+function allCorrect(day){
+  const qs = quizState[day];
+  return qs.correct[0] && qs.correct[1];
+}
+
+function answer(day, qi, oi){
+  const d = DAYS.find(x => x.day === day);
+  const q = d.quiz[qi];
+  quizState[day].answered[qi] = true;
+  quizState[day].correct[qi] = (oi === q.answer);
+  paintAnswered(day, qi, oi);
+  document.getElementById('claimBtn').disabled = !allCorrect(day);
+  document.querySelector('.claim-hint').textContent = allCorrect(day) ? '' : 'Answer both checks correctly to unlock today\u2019s badge.';
+}
+
+function paintAnswered(day, qi, chosenOi){
+  const d = DAYS.find(x => x.day === day);
+  const q = d.quiz[qi];
+  const buttons = document.querySelectorAll(`.qopt[data-day="${day}"][data-qi="${qi}"]`);
+  buttons.forEach(b => {
+    b.disabled = true;
+    const oi = parseInt(b.dataset.oi, 10);
+    if (oi === q.answer) b.classList.add('correct');
+    else if (chosenOi !== undefined && oi === chosenOi) b.classList.add('wrong');
+  });
+  document.getElementById(`explain-${qi}`).style.display = 'block';
+}
+
+function claimBadge(day){
+  solved[day] = true;
+  renderBadgeScreen(day);
+}
+
+function renderBadgeScreen(day){
+  const d = DAYS.find(x => x.day === day);
+  const main = document.getElementById('main');
+  main.innerHTML = `
+    <button class="back-link" onclick="renderDay()">\u2190 Back to dispatch</button>
+    <div class="badge-screen">
+      <h3>${d.capstone ? 'Certificate Unlocked' : 'Badge Unlocked'}</h3>
+      ${d.capstone ? `
+        <div class="name-input-row">
+          <input type="text" id="nameInput" placeholder="Your name (for the certificate)" oninput="renderBadgeSvg(${day})">
+        </div>
+      ` : ''}
+      <div id="badgeSvgHolder"></div>
+      <div>
+        <button class="download-btn" onclick="downloadBadge(${day})">Download as PNG</button>
+        <button class="continue-btn" onclick="renderBoard()">Back to the board</button>
+      </div>
+    </div>
+  `;
+  renderBadgeSvg(day);
+}
+
+function todayStamp(){
+  const d = new Date();
+  return d.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+}
+
+function renderBadgeSvg(day){
+  const d = DAYS.find(x => x.day === day);
+  const name = d.capstone ? (document.getElementById('nameInput')?.value || '') : '';
+  const svg = d.capstone ? capstoneSvg(d, name) : dailySvg(d);
+  document.getElementById('badgeSvgHolder').innerHTML = svg;
+}
+
+function wrapText(text, maxChars){
+  const words = text.split(' ');
+  const lines = [];
+  let current = '';
+  words.forEach(w => {
+    if ((current + ' ' + w).trim().length > maxChars){
+      lines.push(current.trim());
+      current = w;
+    } else {
+      current = (current + ' ' + w).trim();
+    }
+  });
+  if (current) lines.push(current);
+  return lines;
+}
+
+function dailySvg(d){
+  const titleLines = wrapText(d.title, 24);
+  const titleY = 158;
+  const titleTspans = titleLines.map((line, i) =>
+    `<text x="160" y="${titleY + i*20}" text-anchor="middle" font-family="Georgia, serif" font-size="15" fill="#211d17">${escapeXml(line)}</text>`
+  ).join('');
+  return `
+  <svg width="320" height="320" viewBox="0 0 320 320" xmlns="http://www.w3.org/2000/svg">
+    <rect width="320" height="320" fill="#eae4d6"/>
+    <circle cx="160" cy="160" r="150" fill="#f2ede1" stroke="#a9834b" stroke-width="5"/>
+    <circle cx="160" cy="160" r="128" fill="none" stroke="#8c2f2f" stroke-width="2"/>
+    <text x="160" y="70" text-anchor="middle" font-family="Georgia, serif" font-size="13" letter-spacing="2" fill="#5a5347">GUARDRAIL GAZETTE</text>
+    <text x="160" y="122" text-anchor="middle" font-family="Georgia, serif" font-size="30" font-weight="700" fill="#211d17">DAY ${String(d.day).padStart(2,'0')}</text>
+    ${titleTspans}
+    <text x="160" y="240" text-anchor="middle" font-family="SF Mono, Consolas, monospace" font-size="11" fill="#8c2f2f">${escapeXml(d.tag)}</text>
+    <text x="160" y="258" text-anchor="middle" font-family="SF Mono, Consolas, monospace" font-size="10" fill="#5a5347">${todayStamp()}</text>
+  </svg>`;
+}
+
+function capstoneSvg(d, name){
+  return `
+  <svg width="460" height="380" viewBox="0 0 460 380" xmlns="http://www.w3.org/2000/svg">
+    <rect width="460" height="380" fill="#eae4d6"/>
+    <rect x="14" y="14" width="432" height="352" fill="none" stroke="#a9834b" stroke-width="3"/>
+    <rect x="26" y="26" width="408" height="328" fill="#f2ede1" stroke="#8c2f2f" stroke-width="2"/>
+    <text x="230" y="78" text-anchor="middle" font-family="Georgia, serif" font-size="14" letter-spacing="3" fill="#5a5347">GUARDRAIL GAZETTE</text>
+    <text x="230" y="118" text-anchor="middle" font-family="Georgia, serif" font-size="21" font-weight="700" fill="#8c2f2f">CERTIFICATE OF COMPLETION</text>
+    <line x1="150" y1="138" x2="310" y2="138" stroke="#a9834b" stroke-width="1"/>
+    <text x="230" y="190" text-anchor="middle" font-family="Georgia, serif" font-size="26" font-style="italic" fill="#211d17">${name ? escapeXml(name) : 'AI Security Trainee'}</text>
+    <text x="230" y="222" text-anchor="middle" font-family="Georgia, serif" font-size="14" fill="#5a5347">has completed the 20-Day Sprint</text>
+    <text x="230" y="244" text-anchor="middle" font-family="Georgia, serif" font-size="16" font-weight="700" fill="#211d17">AI Risk Fundamentals</text>
+    <text x="230" y="292" text-anchor="middle" font-family="SF Mono, Consolas, monospace" font-size="9" letter-spacing="0.5" fill="#8c2f2f">GLOBAL COMPLIANCE &#183; OWASP LLM TOP 10</text>
+    <text x="230" y="306" text-anchor="middle" font-family="SF Mono, Consolas, monospace" font-size="9" letter-spacing="0.5" fill="#8c2f2f">AGENTIC ASI TOP 10 &#183; MITRE ATLAS</text>
+    <text x="230" y="335" text-anchor="middle" font-family="SF Mono, Consolas, monospace" font-size="11" fill="#5a5347">${todayStamp()}</text>
+  </svg>`;
+}
+
+function escapeXml(s){
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function downloadBadge(day){
+  const d = DAYS.find(x => x.day === day);
+  const svgEl = document.querySelector('#badgeSvgHolder svg');
+  const svgString = new XMLSerializer().serializeToString(svgEl);
+  const svgBlob = new Blob([svgString], {type:'image/svg+xml;charset=utf-8'});
+  const url = URL.createObjectURL(svgBlob);
+  const img = new Image();
+  img.onload = function(){
+    const canvas = document.createElement('canvas');
+    canvas.width = svgEl.width.baseVal.value * 2;
+    canvas.height = svgEl.height.baseVal.value * 2;
+    const ctx = canvas.getContext('2d');
+    ctx.scale(2,2);
+    ctx.drawImage(img, 0, 0);
+    URL.revokeObjectURL(url);
+    canvas.toBlob(function(blob){
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = d.capstone ? 'guardrail-gazette-certificate.png' : `guardrail-gazette-day-${String(d.day).padStart(2,'0')}-badge.png`;
+      a.click();
+    });
+  };
+  img.src = url;
+}
+
+renderBoard();
+</script>
+</body>
+</html>
